@@ -1,9 +1,9 @@
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE CPP                    #-}
+{-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE GADTs #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE UnicodeSyntax #-}
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE GADTs                  #-}
+{-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE UnicodeSyntax          #-}
 -- | 'HoistError' extends 'MonadError' with 'hoistError', which enables lifting
 -- of partiality types such as 'Maybe' and @'Either' e@ into the monad.
 --
@@ -33,23 +33,26 @@
 -- Similar instances exist for @'Either' e@ and @'EitherT' e m@.
 
 module Control.Monad.Error.Hoist
-( HoistError(..)
-, (<%?>)
-, (<%!?>)
-, (<?>)
-, (<!?>)
-) where
+  ( HoistError(..)
+  , (<%?>)
+  , (<%!?>)
+  , (<?>)
+  , (<!?>)
+  ) where
 
-import Control.Monad ((<=<))
+import           Control.Monad              ((<=<))
 
-import Control.Monad.Error.Class (MonadError (..))
+import           Control.Monad.Error.Class  (MonadError (..))
 
-import Control.Monad.Except (ExceptT, Except, runExcept, runExceptT)
+import           Control.Monad.Except       (Except, ExceptT, runExcept,
+                                             runExceptT)
+
+import           Data.Either                (Either, either)
 
 #if MIN_VERSION_either(5,0,0)
 -- Control.Monad.Trans.Either was removed from @either@ in version 5.
 #else
-import Control.Monad.Trans.Either (Either, EitherT, runEither, runEitherT)
+import           Control.Monad.Trans.Either (EitherT, runEitherT)
 #endif
 
 -- | A tricky class for easily hoisting errors out of partiality types (e.g.
@@ -75,12 +78,12 @@ class Monad m ⇒ HoistError m t e e' | t → e where
 instance MonadError e m ⇒ HoistError m Maybe () e where
   hoistError f = maybe (throwError $ f ()) return
 
-#if MIN_VERSION_either(5,0,0)
--- Control.Monad.Trans.Either was removed from @either@ in version 5.  
-#else
 instance MonadError e' m ⇒ HoistError m (Either e) e e' where
   hoistError f = either (throwError . f) return
 
+#if MIN_VERSION_either(5,0,0)
+-- Control.Monad.Trans.Either was removed from @either@ in version 5.
+#else
 instance (m ~ n, MonadError e' m) ⇒ HoistError m (EitherT e n) e e' where
   hoistError f = eitherT (throwError . f) return
 #endif
