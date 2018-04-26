@@ -3,7 +3,7 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE UnicodeSyntax #-}
-
+{-# LANGUAGE CPP #-}
 -- | 'HoistError' extends 'MonadError' with 'hoistError', which enables lifting
 -- of partiality types such as 'Maybe' and @'Either' e@ into the monad.
 --
@@ -40,10 +40,17 @@ module Control.Monad.Error.Hoist
 , (<!?>)
 ) where
 
-import Control.Monad.Error.Class
-import Control.Monad.Trans.Either
+import Control.Monad ((<=<))
 
-import Control.Monad.Trans
+import Control.Monad.Error.Class (MonadError (..))
+
+import Control.Monad.Except (ExceptT, Except, runExcept, runExceptT)
+
+#if MIN_VERSION_either(5,0,0)
+-- Control.Monad.Trans.Either was removed from @either@ in version 5.
+#else
+import Control.Monad.Trans.Either (Either, EitherT, runEither, runEitherT)
+#endif
 
 -- | A tricky class for easily hoisting errors out of partiality types (e.g.
 -- 'Maybe', @'Either' e@) into a monad. The parameter @e@ represents the error
@@ -68,11 +75,21 @@ class Monad m ⇒ HoistError m t e e' | t → e where
 instance MonadError e m ⇒ HoistError m Maybe () e where
   hoistError f = maybe (throwError $ f ()) return
 
+#if MIN_VERSION_either(5,0,0)
+-- Control.Monad.Trans.Either was removed from @either@ in version 5.  
+#else
 instance MonadError e' m ⇒ HoistError m (Either e) e e' where
   hoistError f = either (throwError . f) return
 
 instance (m ~ n, MonadError e' m) ⇒ HoistError m (EitherT e n) e e' where
   hoistError f = eitherT (throwError . f) return
+#endif
+
+instance MonadError e' m ⇒ HoistError m (Except e) e e' where
+  hoistError f = either (throwError . f) return . runExcept
+
+instance MonadError e' m ⇒ HoistError m (ExceptT e m) e e' where
+  hoistError f = either (throwError . f) return <=< runExceptT
 
 -- | A flipped synonym for 'hoistError'.
 (<%?>)
