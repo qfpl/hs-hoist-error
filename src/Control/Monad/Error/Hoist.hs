@@ -41,13 +41,14 @@ module Control.Monad.Error.Hoist
   ) where
 
 import           Control.Monad              ((<=<))
-
 import           Control.Monad.Error.Class  (MonadError (..))
 
+import           Data.Either                (Either, either)
+
+#if MIN_VERSION_mtl(2,2,2)
 import           Control.Monad.Except       (Except, ExceptT, runExcept,
                                              runExceptT)
-
-import           Data.Either                (Either, either)
+#endif
 
 #if MIN_VERSION_either(5,0,0)
 -- Control.Monad.Trans.Either was removed from @either@ in version 5.
@@ -88,11 +89,13 @@ instance (m ~ n, MonadError e' m) ⇒ HoistError m (EitherT e n) e e' where
   hoistError f = eitherT (throwError . f) return
 #endif
 
+#if MIN_VERSION_mtl(2,2,2)
 instance MonadError e' m ⇒ HoistError m (Except e) e e' where
   hoistError f = either (throwError . f) return . runExcept
 
 instance MonadError e' m ⇒ HoistError m (ExceptT e m) e e' where
   hoistError f = either (throwError . f) return <=< runExceptT
+#endif
 
 -- | A flipped synonym for 'hoistError'.
 (<%?>)
