@@ -29,7 +29,8 @@ You're able to run a function on the error as well:
 -- Given...
 fn :: MonadIO m => Int -> Either LibError b
 
--- Provide an `(e -> e')` function as required. In this case, wrapping a general library error with our more relevant constructor.
+-- Provide an `(e -> e')` function as required. In this case, wrapping a general
+-- library error with our more relevant constructor.
 g :: (MonadIO m, MonadError MyError m) => Int -> m b
 g n = fn n <%!?> WrapLibError
 ```
