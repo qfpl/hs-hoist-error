@@ -97,7 +97,7 @@ script:
   - cabal new-build -w ${HC} ${TEST} ${BENCH} all
 
   # cabal check
-  - cabal check
+  - (cd hoist-error-* && cabal check)
 
   # haddock
   - rm -rf ./dist-newstyle
