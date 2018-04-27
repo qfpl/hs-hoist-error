@@ -9,17 +9,12 @@ copyright:           Copyright (c) 2014 AlephCloud, Inc
 category:            Control
 build-type:          Simple
 cabal-version:       >=1.10
+tested-with:         GHC == 7.6.3, GHC == 7.8.4, GHC == 7.10.3, GHC == 8.0.2, GHC == 8.2.2, GHC == 8.4.1
 
 source-repository head
     type: git
     location: https://github.com/alephcloud/hs-hoist-error.git
 
-Tested-With:         GHC == 7.6.3
-                   , GHC == 7.8.4
-                   , GHC == 7.10.3
-                   , GHC == 8.0.2
-                   , GHC == 8.2.2
-                   , GHC == 8.4.1
 library
   exposed-modules:     Control.Monad.Error.Hoist
   build-depends:       base >=4.7 && <4.12
