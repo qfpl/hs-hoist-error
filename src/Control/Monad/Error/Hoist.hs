@@ -48,6 +48,8 @@ import           Data.Either                (Either, either)
 #if MIN_VERSION_mtl(2,2,2)
 import           Control.Monad.Except       (Except, ExceptT, runExcept,
                                              runExceptT)
+#else
+import           Control.Monad.Error        (Error, ErrorT, runErrorT)
 #endif
 
 #if MIN_VERSION_either(5,0,0)
@@ -95,6 +97,9 @@ instance MonadError e' m ⇒ HoistError m (Except e) e e' where
 
 instance MonadError e' m ⇒ HoistError m (ExceptT e m) e e' where
   hoistError f = either (throwError . f) return <=< runExceptT
+#else
+instance MonadError e' m ⇒ HoistError m (ErrorT e m) e e' where
+  hoistError f = either (throwError . f) return <=< runErrorT
 #endif
 
 -- | A flipped synonym for 'hoistError'.
