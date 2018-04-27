@@ -11,6 +11,7 @@ vendor/
 Mediator
 dist/Server
 dist
+dist-newstyle
 .cabal-sandbox
 cabal.sandbox.config
 CTAGS
