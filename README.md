@@ -1,17 +1,15 @@
 ## Hoist Error
 
-A typeclass and some combinators to aid in the lifting of errors into your
-preferred context.
+A typeclass and some combinators to aid in the lifting of errors into your preferred context.
 
-We have our set of errors:
+As an example, assuming we have the following error type:
 ```haskell
 data MyError
   = WrongInt Int
   | WrapLibError LibError
 ```
 
-There is a combinator for straight forward translation of a general error case,
-into a more specific type:
+This package provides a combinator for straight forward translation of a general error case into a more specific type:
 ```haskell
 -- Given a function:
 fn :: MonadIO m => Int -> m (Maybe b)
