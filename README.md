@@ -10,8 +10,8 @@ data MyError
   | WrapLibError LibError
 ```
 
-There is a combinator for straightforward translation of a general error case,
-into one of your specific errors:
+There is a combinator for straight forward translation of a general error case,
+into a more specific type:
 ```haskell
 -- Given a function:
 fn :: MonadIO m => Int -> m (Maybe b)
@@ -19,7 +19,7 @@ fn :: MonadIO m => Int -> m (Maybe b)
 -- Working in some MonadError context..
 ... :: MonadError MyError m => m b
 
--- Handle the `Nothing` case by using our explicit constructor, with no intermediate boilerplate.
+-- Handle the `Nothing` case by using an explicit constructor, with no intermediate boilerplate.
 g :: (MonadIO m, MonadError MyError m) => Int -> m b
 g n = fn n <!?> WrongInt n
 ```
