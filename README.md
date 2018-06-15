@@ -1,5 +1,7 @@
 ## Hoist Error
 
+[![Build Status](https://travis-ci.org/qfpl/hs-hoist-error.svg?branch=master)](https://travis-ci.org/qfpl/hs-hoist-error)
+
 A typeclass and some combinators to aid in the lifting of errors into your preferred context.
 
 As an example, assuming we have the following error type:
