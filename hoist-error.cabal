@@ -27,7 +27,7 @@ source-repository head
 
 library
   exposed-modules:     Control.Monad.Error.Hoist
-  build-depends:       base   >=4.7 && <4.12
+  build-depends:       base   >=4.7 && <4.13
                      , mtl    >=2.1 && <2.3
                      , either >=4   && <6
 
