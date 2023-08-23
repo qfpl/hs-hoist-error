@@ -18,7 +18,7 @@ import           Control.Monad.Error.Class  (MonadError (..))
 
 import           Data.Either                (Either, either)
 
-class Monad m => HoistFail m t e | t -> e where
+class Monad m => HoistFail t m e | t -> e where
 
   -- | Given a conversion from the error in @t a@ to @String@, we can hoist the
   -- computation into @m@.
@@ -32,13 +32,13 @@ class Monad m => HoistFail m t e | t -> e where
     -> t a
     -> m a
 
-instance MonadFail m => HoistFail m Maybe () where
+instance MonadFail m => HoistFail Maybe m () where
   hoistFail f = maybe (fail $ f ()) pure
 
-instance MonadFail m => HoistFail m (Either e) e where
+instance MonadFail m => HoistFail (Either e) m e where
   hoistFail f = either (fail . f) pure
 
-hoistFail_ :: HoistFail m t String => t a -> m a
+hoistFail_ :: HoistFail t m String => t a -> m a
 hoistFail_ = hoistFail id
 
 -- | A flipped synonym for 'hoistFail'.
@@ -48,7 +48,7 @@ hoistFail_ = hoistFail id
 -- ('<%!>') :: 'MonadFail' m => 'Either'  a   b -> (a  -> e) ->           m b
 -- @
 (<%!>)
-  :: HoistFail m t e
+  :: HoistFail t m e
   => t a
   -> (e -> String)
   -> m a
@@ -65,7 +65,7 @@ infixl 8 <%!>
 -- ('<!>') :: 'MonadFail' m => 'Either'  a   b -> e ->           m b
 -- @
 (<!>)
-  :: HoistFail m t e
+  :: HoistFail t m e
   => t a
   -> String
   -> m a
