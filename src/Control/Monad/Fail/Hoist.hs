@@ -10,6 +10,8 @@
 module Control.Monad.Fail.Hoist
   ( HoistFail(..)
   , hoistFail_
+  , hoistFailE
+  , hoistFailE_
   , (<%!>)
   , (<!>)
   ) where
@@ -40,6 +42,12 @@ instance MonadFail m => HoistFail (Either e) m e where
 
 hoistFail_ :: HoistFail t m String => t a -> m a
 hoistFail_ = hoistFail id
+
+hoistFailE :: MonadFail m => (e -> String) -> Either e a -> m a
+hoistFailE = hoistFail
+
+hoistFailE_ :: MonadFail m => Either String a -> m a
+hoistFailE_ = hoistFail_
 
 -- | A flipped synonym for 'hoistFail'.
 --
