@@ -9,8 +9,7 @@
 -- of partiality types such as 'Maybe' and @'Either' e@ into the monad.
 module Control.Monad.Fail.Hoist
   ( HoistFail(..)
-  , hoistFailShow
-  , hoistFailString
+  , hoistFail_
   , (<%!>)
   , (<!>)
   ) where
@@ -39,11 +38,8 @@ instance MonadFail m => HoistFail m Maybe () where
 instance MonadFail m => HoistFail m (Either e) e where
   hoistFail f = either (fail . f) pure
 
-hoistFailShow :: (HoistFail m t e, Show e) => t a -> m a
-hoistFailShow = hoistFail show
-
-hoistFailString :: HoistFail m t String => t a -> m a
-hoistFailString = hoistFail id
+hoistFail_ :: HoistFail m t String => t a -> m a
+hoistFail_ = hoistFail id
 
 -- | A flipped synonym for 'hoistFail'.
 --
