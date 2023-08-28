@@ -5,8 +5,8 @@
 {-# LANGUAGE GADTs                  #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
 
--- | 'HoistFail extends 'MonadFail with 'hoistFail, which enables lifting
--- of partiality types such as 'Maybe' and @'Either' e@ into the monad.
+-- | 'HoistFail' extends 'MonadFail' with 'hoistFail', which enables lifting
+-- of partiality types such as 'Maybe' and 'Either' e@ into the monad.
 module Control.Monad.Fail.Hoist
   ( HoistFail(..)
   , hoistFail'
@@ -48,8 +48,8 @@ class Monad m => HoistFail t m e | t -> e where
   -- computation into @m@.
   --
   -- @
-  -- 'hoistFail' :: 'MonadFail' m => (() -> e) -> 'Maybe'       a -> m a
-  -- 'hoistFail' :: 'MonadFail' m => (a  -> e) -> 'Either'  a   b -> m b
+  -- 'hoistFail' :: 'MonadFail' m => (() -> String) -> 'Maybe'       a -> m a
+  -- 'hoistFail' :: 'MonadFail' m => (a  -> String) -> 'Either'  a   b -> m b
   -- @
   hoistFail
     :: (e -> String)
@@ -81,15 +81,37 @@ instance MonadError m => HoistFail (ErrorT e m) m e where
   hoistFail f = either (fail . f) return <=< runErrorT
 #endif
 
+-- | Hoist computations whose error type is already 'String'.
 hoistFail' :: HoistFail t m String => t a -> m a
 hoistFail' = hoistFail id
 
+-- | 'hoistFail' specialised to @Either@. Helpful for using functions that are
+-- polymorphic in their monad.
+--
+-- You could consider this as having the following type:
+-- @
+-- hoistFailE :: (MonadError e m', MonadFail m) => (e -> String) -> m' a -> m a
+-- @
 hoistFailE :: MonadFail m => (e -> String) -> Either e a -> m a
 hoistFailE = hoistFail
 
+-- | 'hoistFail'' specialised to @Either@. Helpful for using functions that are
+-- polymorphic in their monad.
+--
+-- You could consider this as having the following type:
+-- @
+-- hoistFailE' :: (MonadError String m', MonadFail m) => m' a -> m a
+-- @
 hoistFailE' :: MonadFail m => Either String a -> m a
 hoistFailE' = hoistFail'
 
+-- | A version of 'hoistFail' that operates on values already in the monad.
+--
+-- @
+-- 'hoistFailM' :: 'MonadFail' m => (() -> String) -> m ('Maybe'       a) ->           m a
+-- 'hoistFailM' :: 'MonadFail' m => (a  -> String) -> m ('Either'  a   b) ->           m b
+-- 'hoistFailM' :: 'MonadFail' m => (a  -> String) ->    'ExceptT' a m b  -> 'ExceptT' a m b
+-- @
 hoistFailM
   :: HoistFail t m e
   => (e -> String)
@@ -99,6 +121,13 @@ hoistFailM e m = do
   x <- m
   hoistFail e x
 
+-- | A version of 'hoistFail'' that operates on values already in the monad.
+--
+-- @
+-- 'hoistFailM'' :: 'MonadFail' m => m ('Maybe'       a) ->           m a
+-- 'hoistFailM'' :: 'MonadFail' m => m ('Either'  a   b) ->           m b
+-- 'hoistFailM'' :: 'MonadFail' m =>    'ExceptT' a m b  -> 'ExceptT' a m b
+-- @
 hoistFailM'
   :: HoistFail t m String
   => m (t a)
@@ -107,6 +136,7 @@ hoistFailM' m = do
   x <- m
   hoistFail' x
 
+-- | A version of 'hoistFailE' that operates on values already in the monad.
 hoistFailEM
   :: MonadFail m
   => (e -> String)
@@ -114,13 +144,14 @@ hoistFailEM
   -> m a
 hoistFailEM = hoistFailM
 
+-- | A version of 'hoistFailE'' that operates on values already in the monad.
 hoistFailEM'
   :: MonadFail m
   => m (Either String a)
   -> m a
 hoistFailEM' = hoistFailM'
 
--- | A flipped synonym for 'hoistFail'.
+-- | A flipped synonym for 'hoistFail'. Mnemonic: @#@ looks a bit like @F@
 --
 -- @
 -- ('<%#>') :: 'MonadFail' m => 'Maybe'       a -> (() -> e) ->           m a
