@@ -70,9 +70,9 @@ class Monad m => HoistError m t e e' | t -> e where
   -- computation into @m@.
   --
   -- @
-  -- 'hoistError' :: 'MonadError' e m -> (() -> e) -> 'Maybe'       a -> m a
-  -- 'hoistError' :: 'MonadError' e m -> (a  -> e) -> 'Either'  a   b -> m b
-  -- 'hoistError' :: 'MonadError' e m -> (a  -> e) -> 'ExceptT' a m b -> m b
+  -- 'hoistError' :: 'MonadError' e m => (() -> e) -> 'Maybe'       a -> m a
+  -- 'hoistError' :: 'MonadError' e m => (a  -> e) -> 'Either'  a   b -> m b
+  -- 'hoistError' :: 'MonadError' e m => (a  -> e) -> 'ExceptT' a m b -> m b
   -- @
   hoistError
     :: (e -> e')
