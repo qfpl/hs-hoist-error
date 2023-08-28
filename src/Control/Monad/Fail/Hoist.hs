@@ -42,7 +42,7 @@ import           Control.Monad.Error        (Error, ErrorT, runErrorT)
 import           Control.Monad.Trans.Either (EitherT, eitherT, runEitherT)
 #endif
 
-class Monad m => HoistFail t m e | t -> e where
+class Monad m => HoistFail m t e | t -> e where
 
   -- | Given a conversion from the error in @t a@ to @String@, we can hoist the
   -- computation into @m@.
@@ -56,33 +56,33 @@ class Monad m => HoistFail t m e | t -> e where
     -> t a
     -> m a
 
-instance MonadFail m => HoistFail Maybe m () where
+instance MonadFail m => HoistFail m Maybe () where
   hoistFail f = maybe (fail $ f ()) return
 
-instance MonadFail m => HoistFail (Either e) m e where
+instance MonadFail m => HoistFail m (Either e) e where
   hoistFail f = either (fail . f) return
 
 #if MIN_VERSION_either(5,0,0)
 -- Control.Monad.Trans.Either was removed from @either@ in version 5.
 #else
-instance (m ~ n, MonadFail m) => HoistFail (EitherT e n) m e where
+instance (m ~ n, MonadFail m) => HoistFail m (EitherT e n) e where
   hoistFail f = eitherT (fail . f) return
 #endif
 
 #if MIN_VERSION_mtl(2,2,2)
-instance MonadFail m => HoistFail (Except e) m e where
+instance MonadFail m => HoistFail m (Except e) e where
   hoistFail f = either (fail . f) return . runExcept
 
-instance MonadFail m => HoistFail (ExceptT e m) m e where
+instance MonadFail m => HoistFail m (ExceptT e m) e where
   hoistFail f = either (fail . f) return <=< runExceptT
 #else
 -- 'ErrorT' was renamed to 'ExceptT' in mtl 2.2.2
-instance MonadError m => HoistFail (ErrorT e m) m e where
+instance MonadError m => HoistFail m (ErrorT e m) e where
   hoistFail f = either (fail . f) return <=< runErrorT
 #endif
 
 -- | Hoist computations whose error type is already 'String'.
-hoistFail' :: HoistFail t m String => t a -> m a
+hoistFail' :: HoistFail m t String => t a -> m a
 hoistFail' = hoistFail id
 
 -- | 'hoistFail' specialised to @Either@. Helpful for using functions that are
@@ -113,7 +113,7 @@ hoistFailE' = hoistFail'
 -- 'hoistFailM' :: 'MonadFail' m => (a  -> String) ->    'ExceptT' a m b  -> 'ExceptT' a m b
 -- @
 hoistFailM
-  :: HoistFail t m e
+  :: HoistFail m t e
   => (e -> String)
   -> m (t a)
   -> m a
@@ -129,7 +129,7 @@ hoistFailM e m = do
 -- 'hoistFailM'' :: 'MonadFail' m =>    'ExceptT' a m b  -> 'ExceptT' a m b
 -- @
 hoistFailM'
-  :: HoistFail t m String
+  :: HoistFail m t String
   => m (t a)
   -> m a
 hoistFailM' m = do
@@ -158,7 +158,7 @@ hoistFailEM' = hoistFailM'
 -- ('<%#>') :: 'MonadFail' m => 'Either'  a   b -> (a  -> e) ->           m b
 -- @
 (<%#>)
-  :: HoistFail t m e
+  :: HoistFail m t e
   => t a
   -> (e -> String)
   -> m a
@@ -175,7 +175,7 @@ infixl 8 <%#>
 -- ('<%!#>') :: 'MonadError' e m =>    'ExceptT' a m b  -> (a  -> e) -> 'ExceptT' a m b
 -- @
 (<%!#>)
-  :: HoistFail t m e
+  :: HoistFail m t e
   => m (t a)
   -> (e -> String)
   -> m a
@@ -192,7 +192,7 @@ infixl 8 <%!#>
 -- ('<#>') :: 'MonadFail' m => 'Either'  a   b -> String ->           m b
 -- @
 (<#>)
-  :: HoistFail t m String
+  :: HoistFail m t String
   => t a
   -> String
   -> m a
@@ -209,7 +209,7 @@ infixl 8 <#>
 -- ('<!#>') :: 'MonadFail m =>    'ExceptT' a m b  -> String -> 'ExceptT' a m b
 -- @
 (<!#>)
-  :: HoistFail t m String
+  :: HoistFail m t String
   => m (t a)
   -> String
   -> m a
