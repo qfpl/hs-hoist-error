@@ -16,7 +16,9 @@ module Control.Monad.Fail.Hoist
   , (<!>)
   ) where
 
-import           Control.Monad.Error.Class  (MonadError (..))
+import           Prelude hiding (fail)
+
+import           Control.Monad.Fail         (MonadFail (..))
 
 import           Data.Either                (Either, either)
 
