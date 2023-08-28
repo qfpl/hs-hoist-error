@@ -34,7 +34,13 @@
 
 module Control.Monad.Error.Hoist
   ( HoistError(..)
+  , hoistError'
+  , hoistErrorE
+  , hoistErrorE'
   , hoistErrorM
+  , hoistErrorM'
+  , hoistErrorEM
+  , hoistErrorEM'
   , (<%?>)
   , (<%!?>)
   , (<?>)
@@ -104,6 +110,37 @@ instance MonadError e' m => HoistError m (ErrorT e m) e e' where
   hoistError f = either (throwError . f) return <=< runErrorT
 #endif
 
+-- | Hoist computations whose error type is already @e@.
+hoistError' :: HoistError m t e e => t a -> m a
+hoistError' = hoistError id
+
+-- | 'hoistError' specialised to @Either@. Helpful for using functions that are
+-- polymorphic in their monad.
+--
+-- You could consider this as having the following type:
+-- @
+-- hoistErrorE :: (MonadError e m', MonadError e' m) => (e -> e') -> m' a -> m a
+-- @
+hoistErrorE
+  :: MonadError e' m
+  => (e -> e')
+  -> Either e a
+  -> m a
+hoistErrorE = hoistError
+
+-- | 'hoistError'' specialised to @Either@. Helpful for using functions that are
+-- polymorphic in their monad.
+--
+-- You could consider this as having the following type:
+-- @
+-- hoistErrorE' :: (MonadError e m', MonadError e m) => m' a -> m a
+-- @
+hoistErrorE'
+  :: MonadError e m
+  => Either e a
+  -> m a
+hoistErrorE' = hoistErrorE id
+
 -- | A version of 'hoistError' that operates on values already in the monad.
 --
 -- @
@@ -119,6 +156,36 @@ hoistErrorM
 hoistErrorM e m = do
   x <- m
   hoistError e x
+
+-- | A version of 'hoistError'' that operates on values already in the monad.
+--
+-- @
+-- 'hoistErrorM'' :: 'MonadError' () m => m ('Maybe'       a) ->           m a
+-- 'hoistErrorM'' :: 'MonadError' e m => m ('Either'  e   b) ->           m b
+-- 'hoistErrorM'' :: 'MonadError' e m => 'ExceptT' e m b  -> 'ExceptT' e m b
+-- @
+hoistErrorM'
+  :: HoistError m t e e
+  => m (t a)
+  -> m a
+hoistErrorM' m = do
+  x <- m
+  hoistError' x
+
+-- | A version of 'hoistErrorE' that operates on values already in the monad.
+hoistErrorEM
+  :: MonadError e' m
+  => (e -> e')
+  -> m (Either e a)
+  -> m a
+hoistErrorEM = hoistErrorM
+
+-- | A version of 'hoistErrorE'' that operates on values already in the monad.
+hoistErrorEM'
+  :: MonadError e m
+  => m (Either e a)
+  -> m a
+hoistErrorEM' = hoistErrorM'
 
 -- | A flipped synonym for 'hoistError'.
 --
