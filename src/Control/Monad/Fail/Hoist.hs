@@ -117,9 +117,7 @@ hoistFailM
   => (e -> String)
   -> m (t a)
   -> m a
-hoistFailM e m = do
-  x <- m
-  hoistFail e x
+hoistFailM e m = hoistFail e =<< m
 
 -- | A version of 'hoistFail'' that operates on values already in the monad.
 --
@@ -132,9 +130,7 @@ hoistFailM'
   :: HoistFail m t String
   => m (t a)
   -> m a
-hoistFailM' m = do
-  x <- m
-  hoistFail' x
+hoistFailM' m = hoistFail' =<< m
 
 -- | A version of 'hoistFailE' that operates on values already in the monad.
 hoistFailEM
@@ -213,9 +209,7 @@ infixl 8 <#>
   => m (t a)
   -> String
   -> m a
-m <!#> e = do
-  x <- m
-  x <#> e
+m <!#> e = hoistFail (const e) =<< m
 
 infixl 8 <!#>
 {-# INLINE (<!#>) #-}

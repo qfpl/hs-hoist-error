@@ -153,9 +153,7 @@ hoistErrorM
   => (e -> e')
   -> m (t a)
   -> m a
-hoistErrorM e m = do
-  x <- m
-  hoistError e x
+hoistErrorM e m = hoistError e =<< m
 
 -- | A version of 'hoistError'' that operates on values already in the monad.
 --
@@ -168,9 +166,7 @@ hoistErrorM'
   :: HoistError m t e e
   => m (t a)
   -> m a
-hoistErrorM' m = do
-  x <- m
-  hoistError' x
+hoistErrorM' m = hoistError' =<< m
 
 -- | A version of 'hoistErrorE' that operates on values already in the monad.
 hoistErrorEM
@@ -251,9 +247,7 @@ infixl 8 <?>
   => m (t a)
   -> e'
   -> m a
-m <!?> e = do
-  x <- m
-  x <?> e
+m <!?> e = hoistError (const e) =<< m
 
 infixl 8 <!?>
 {-# INLINE (<!?>) #-}
