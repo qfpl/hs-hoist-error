@@ -188,7 +188,7 @@ infixl 8 <%!#>
 -- ('<#>') :: 'MonadFail' m => 'Either'  a   b -> String ->           m b
 -- @
 (<#>)
-  :: HoistFail m t String
+  :: HoistFail m t e
   => t a
   -> String
   -> m a
@@ -205,7 +205,7 @@ infixl 8 <#>
 -- ('<!#>') :: 'MonadFail m =>    'ExceptT' a m b  -> String -> 'ExceptT' a m b
 -- @
 (<!#>)
-  :: HoistFail m t String
+  :: HoistFail m t e
   => m (t a)
   -> String
   -> m a
