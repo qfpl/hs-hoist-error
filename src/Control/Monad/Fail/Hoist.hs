@@ -39,7 +39,7 @@ hoistFail
   => (e -> String)
   -> t a
   -> m a
-hoistFail f t = inspectError t >>= either (fail . f) pure
+hoistFail f = foldError (fail . f) pure
 
 -- | Hoist computations whose error type is already 'String'.
 hoistFail' :: (PluckError String t m, MonadFail m) => t a -> m a

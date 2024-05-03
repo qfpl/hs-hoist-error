@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE DefaultSignatures      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE GADTs                  #-}
 {-# LANGUAGE TypeOperators          #-}
@@ -67,7 +68,7 @@ hoistError
   => (e -> e')
   -> t a
   -> m a
-hoistError f t = inspectError t >>= either (throwError . f) pure
+hoistError f = foldError (throwError . f) pure
 
 -- | A version of 'hoistError' that operates on values already in the monad.
 --
@@ -172,16 +173,28 @@ infixl 8 <!?>
 
 -- | A class for plucking an error @e@ out of a partiality type @t@.
 class PluckError e t m | t -> e where
-  inspectError :: t a -> m (Either e a)
+  pluckError :: t a -> m (Either e a)
+  default pluckError :: Applicative m => t a -> m (Either e a)
+  pluckError = foldError (pure . Left) (pure . Right)
+
+  foldError :: (e -> m r) -> (a -> m r) -> t a -> m r
+  default foldError :: Monad m => (e -> m r) -> (a -> m r) -> t a -> m r
+  foldError f g = either f g <=< pluckError
+
+  {-# MINIMAL pluckError | foldError #-}
 
 instance (Applicative m, e ~ ()) => PluckError e Maybe m where
-  inspectError = pure . maybe (Left ()) Right
+  pluckError = pure . maybe (Left ()) Right
+  foldError f = maybe (f ())
 
 instance Applicative m => PluckError e (Either e) m where
-  inspectError = pure
+  pluckError = pure
+  foldError = either
 
-instance PluckError e (ExceptT e m) m where
-  inspectError = runExceptT
+instance Monad m => PluckError e (ExceptT e m) m where
+  pluckError = runExceptT
+  foldError f g = either f g <=< runExceptT
 
 instance Applicative m => PluckError e (Except e) m where
-  inspectError = pure . runExcept
+  pluckError = pure . runExcept
+  foldError f g = either f g . runExcept
