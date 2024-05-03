@@ -1,43 +1,49 @@
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE GADTs                  #-}
-{-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE TypeOperators          #-}
+{-# LANGUAGE UndecidableInstances   #-}
 
--- | 'HoistError' extends 'MonadError' with 'hoistError', which enables lifting
--- of partiality types such as 'Maybe' and @'Either' e@ into the monad.
+-- | This module provides helper functions for lifting partiality types into
+-- error-carrying monads like 'ExceptT'.
 --
 -- For example, consider the following @App@ monad that may throw @BadPacket@
 -- errors:
 --
 -- @
--- data AppError = BadPacket 'String'
+-- data AppError = BadPacket 'Text'
 --
 -- newtype App a = App ('EitherT' AppError 'IO') a
 --  deriving ('Functor', 'Applicative', 'Monad', 'MonadError' AppError, 'MonadIO')
 -- @
 --
--- We may have an existing function that parses a 'String' into a @'Maybe' Packet@
+-- We may have an existing function that attempts to parse a 'ByteString':
 --
 -- @
--- parsePacket :: 'String' -> 'Maybe' Packet
+-- parsePacket :: 'ByteString' -> 'Either' 'Text' Packet
 -- @
 --
--- which can be lifted into the @App@ monad with 'hoistError'
+-- We can be lift this error into the @App@ monad using @('<%?>')@:
 --
 -- @
--- appParsePacket :: 'String' -> 'App' Packet
--- appParsePacket s = 'hoistError' (\\() -> BadPacket "no parse") (parsePacket s)
+-- appParsePacket :: 'ByteString' -> 'App' Packet
+-- appParsePacket s = parsePacket s \<%?\> BadPacket
 -- @
 --
--- Similar instances exist for @'Either' e@ and @'EitherT' e m@.
+-- Instances also exist for extracting errors from other partiality types
+-- like @'Either' e@ and @'ExceptT' e m@.
 
 module Control.Monad.Error.Hoist
-  ( HoistError(..)
+  ( hoistError
   , hoistErrorM
+  -- ** Operators
+  -- $mnemonics
   , (<%?>)
   , (<%!?>)
   , (<?>)
   , (<!?>)
+  -- * Helper class
+  , PluckError(..)
   ) where
 
 import           Control.Monad              ((<=<))
@@ -48,37 +54,20 @@ import           Data.Either                (Either, either)
 import           Control.Monad.Except       (Except, ExceptT, runExcept,
                                              runExceptT)
 
--- | A tricky class for easily hoisting errors out of partiality types (e.g.
--- 'Maybe', @'Either' e@) into a monad. The parameter @e@ represents the error
--- information carried by the partiality type @t@, and @e'@ represents the type
--- of error expected in the monad @m@.
+-- | Given a conversion from the error in @t a@ to @e'@, we can hoist the
+-- computation into @m@.
 --
-class Monad m => HoistError m t e e' | t -> e where
-
-  -- | Given a conversion from the error in @t a@ to @e'@, we can hoist the
-  -- computation into @m@.
-  --
-  -- @
-  -- 'hoistError' :: 'MonadError' e m -> (() -> e) -> 'Maybe'       a -> m a
-  -- 'hoistError' :: 'MonadError' e m -> (a  -> e) -> 'Either'  a   b -> m b
-  -- 'hoistError' :: 'MonadError' e m -> (a  -> e) -> 'ExceptT' a m b -> m b
-  -- @
-  hoistError
-    :: (e -> e')
-    -> t a
-    -> m a
-
-instance MonadError e m => HoistError m Maybe () e where
-  hoistError f = maybe (throwError $ f ()) return
-
-instance MonadError e' m => HoistError m (Either e) e e' where
-  hoistError f = either (throwError . f) return
-
-instance MonadError e' m => HoistError m (Except e) e e' where
-  hoistError f = either (throwError . f) return . runExcept
-
-instance MonadError e' m => HoistError m (ExceptT e m) e e' where
-  hoistError f = either (throwError . f) return <=< runExceptT
+-- @
+-- 'hoistError' :: 'MonadError' e m -> (() -> e) -> 'Maybe'       a -> m a
+-- 'hoistError' :: 'MonadError' e m -> (a  -> e) -> 'Either'  a   b -> m b
+-- 'hoistError' :: 'MonadError' e m -> (a  -> e) -> 'ExceptT' a m b -> m b
+-- @
+hoistError
+  :: (PluckError e t m, MonadError e' m)
+  => (e -> e')
+  -> t a
+  -> m a
+hoistError f t = inspectError t >>= either (throwError . f) pure
 
 -- | A version of 'hoistError' that operates on values already in the monad.
 --
@@ -88,13 +77,27 @@ instance MonadError e' m => HoistError m (ExceptT e m) e e' where
 -- 'hoistErrorM' :: 'MonadError' e m => (a  -> e) ->    'ExceptT' a m b  -> 'ExceptT' a m b
 -- @
 hoistErrorM
-  :: HoistError m t e e'
+  :: (PluckError e t m, MonadError e' m)
   => (e -> e')
   -> m (t a)
   -> m a
-hoistErrorM e m = do
-  x <- m
-  hoistError e x
+hoistErrorM e m = m >>= hoistError e
+
+-- $mnemonics
+--
+-- The operators in this package are named according to a scheme:
+--
+-- * @('<?>')@ is the simplest error-handling function: it replaces
+--   any error with its second argument.
+--
+-- * The additional @!@ in @('<!?>')@ and @('<%!?>')@ means the
+--   operator handles values that are already "in a monad".
+--
+-- * The additional @%@ in @('<%?>')@ and @('<%!?>')@ means the
+--   operator takes a function argument, which is applies to the error
+--   from the partiality type. (The mnemonic is that @%@ sometimes
+--   means "mod", and we use "mod" as a shorthand for "modify". It's a
+--   long bow, but @lens@ uses the same mnemonic.)
 
 -- | A flipped synonym for 'hoistError'.
 --
@@ -104,7 +107,7 @@ hoistErrorM e m = do
 -- ('<%?>') :: 'MonadError' e m => 'ExceptT' a m b -> (a  -> e) -> 'ExceptT' a m b
 -- @
 (<%?>)
-  :: HoistError m t e e'
+  :: (PluckError e t m, MonadError e' m)
   => t a
   -> (e -> e')
   -> m a
@@ -121,7 +124,7 @@ infixl 8 <%?>
 -- ('<%!?>') :: 'MonadError' e m =>    'ExceptT' a m b  -> (a  -> e) -> 'ExceptT' a m b
 -- @
 (<%!?>)
-  :: HoistError m t e e'
+  :: (PluckError e t m, MonadError e' m)
   => m (t a)
   -> (e -> e')
   -> m a
@@ -139,7 +142,7 @@ infixl 8 <%!?>
 -- ('<?>') :: 'MonadError' e m => 'ExceptT' a m b -> e -> 'ExceptT' a m b
 -- @
 (<?>)
-  :: HoistError m t e e'
+  :: (PluckError e t m, MonadError e' m)
   => t a
   -> e'
   -> m a
@@ -156,7 +159,7 @@ infixl 8 <?>
 -- ('<!?>') :: 'MonadError' e m =>    'ExceptT' a m b  -> e -> 'ExceptT' a m b
 -- @
 (<!?>)
-  :: HoistError m t e e'
+  :: (PluckError e t m, MonadError e' m)
   => m (t a)
   -> e'
   -> m a
@@ -166,3 +169,19 @@ m <!?> e = do
 
 infixl 8 <!?>
 {-# INLINE (<!?>) #-}
+
+-- | A class for plucking an error @e@ out of a partiality type @t@.
+class PluckError e t m | t -> e where
+  inspectError :: t a -> m (Either e a)
+
+instance (Applicative m, e ~ ()) => PluckError e Maybe m where
+  inspectError = pure . maybe (Left ()) Right
+
+instance Applicative m => PluckError e (Either e) m where
+  inspectError = pure
+
+instance PluckError e (ExceptT e m) m where
+  inspectError = runExceptT
+
+instance Applicative m => PluckError e (Except e) m where
+  inspectError = pure . runExcept
