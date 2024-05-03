@@ -1,3 +1,11 @@
+0.3.0.0
+
+* Replaced the `HoistError` typeclass, which is about monads, with a
+  simpler `PluckError` typeclass that is about extracting errors from
+  values.
+* Introduced a parallel `Control.Monad.Fail.Hoist` module, for
+  hoisting error messages into `MonadFail`.
+
 0.2.1.0
 
 * Removed unicode syntax and variables
