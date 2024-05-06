@@ -3,6 +3,9 @@
 * Replaced the `HoistError` typeclass, which is about monads, with a
   simpler `PluckError` typeclass that is about extracting errors from
   values.
+* Removed the instance for `Except e`, as it triggers overlapping
+  instance errors when attempting to hoist `ExceptT e m` for unknown
+  monads `m`.
 * Introduced a parallel `Control.Monad.Fail.Hoist` module, for
   hoisting error messages into `MonadFail`.
 
