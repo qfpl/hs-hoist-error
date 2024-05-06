@@ -24,7 +24,7 @@
 -- parsePacket :: 'ByteString' -> 'Either' 'Text' Packet
 -- @
 --
--- We can be lift this error into the @App@ monad using @('<%?>')@:
+-- We can lift this error into the @App@ monad using @('<%?>')@:
 --
 -- @
 -- appParsePacket :: 'ByteString' -> 'App' Packet
