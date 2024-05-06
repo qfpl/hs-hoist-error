@@ -194,7 +194,3 @@ instance Applicative m => PluckError e (Either e) m where
 instance Monad m => PluckError e (ExceptT e m) m where
   pluckError = runExceptT
   foldError f g = either f g <=< runExceptT
-
-instance Applicative m => PluckError e (Except e) m where
-  pluckError = pure . runExcept
-  foldError f g = either f g . runExcept
