@@ -95,9 +95,9 @@ hoistErrorM e m = m >>= hoistError e
 --   operator handles values that are already "in a monad".
 --
 -- * The additional @%@ in @('<%?>')@ and @('<%!?>')@ means the
---   operator takes a function argument, which is applies to the error
+--   operator takes a function argument, which it applies to the error
 --   from the partiality type. (The mnemonic is that @%@ sometimes
---   means "mod", and we use "mod" as a shorthand for "modify". It's a
+--   means "mod", and we abuse "mod" as a shorthand for "modify". It's a
 --   long bow, but @lens@ uses the same mnemonic.)
 
 -- | A flipped synonym for 'hoistError'.

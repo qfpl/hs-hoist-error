@@ -72,7 +72,7 @@ hoistFailM'
   -> m a
 hoistFailM' = hoistFailM id
 
--- | A flipped synonym for 'hoistFail'. Mnemonic: @#@ looks a bit like @F@
+-- | A flipped synonym for 'hoistFail'. Mnemonic: @#@ looks a bit like @F@.
 --
 -- @
 -- ('<%#>') :: 'MonadFail' m => 'Maybe'    a -> (() -> e) -> m a
