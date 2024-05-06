@@ -1,6 +1,6 @@
 ## Hoist Error
 
-[![Build Status](https://travis-ci.org/qfpl/hs-hoist-error.svg?branch=master)](https://travis-ci.org/qfpl/hs-hoist-error)
+[![Haskell-CI](https://github.com/qfpl/hs-hoist-error/actions/workflows/haskell-ci.yml/badge.svg)](https://github.com/qfpl/hs-hoist-error/actions/workflows/haskell-ci.yml)
 
 A typeclass and some combinators to aid in the lifting of errors into your preferred context.
 
