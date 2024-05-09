@@ -52,7 +52,7 @@ import           Control.Monad.Error.Class  (MonadError (..))
 
 import           Data.Either                (Either, either)
 
-import           Control.Monad.Except       (Except, ExceptT, runExcept,
+import           Control.Monad.Except       (Except, ExceptT(..), runExcept,
                                              runExceptT)
 
 -- | Given a conversion from the error in @t a@ to @e'@, we can hoist the
@@ -194,3 +194,6 @@ instance Applicative m => PluckError e (Either e) m where
 instance Monad m => PluckError e (ExceptT e m) m where
   pluckError = runExceptT
   foldError f g = either f g <=< runExceptT
+
+instance Monad m => PluckError e (ExceptT e m) (ExceptT e' m) where
+  pluckError = ExceptT . fmap Right . runExceptT
