@@ -1,5 +1,5 @@
 name:                hoist-error
-version:             0.3.0.0
+version:             0.3.1.0
 synopsis:            Some convenience facilities for hoisting errors into a monad
 description:         Provides a typeclass and useful combinators for hoisting errors into a monad.
 license:             MIT

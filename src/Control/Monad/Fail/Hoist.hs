@@ -41,7 +41,7 @@ hoistFail
   -> m a
 hoistFail f = foldError (fail . f) pure
 
--- | Hoist computations whose error type is already 'String'.
+-- | @hoistFail' = hoistFail id@
 hoistFail' :: (PluckError String t m, MonadFail m) => t a -> m a
 hoistFail' = hoistFail id
 
@@ -59,13 +59,7 @@ hoistFailM
   -> m a
 hoistFailM f m = m >>= hoistFail f
 
--- | A version of 'hoistFail'' that operates on values already in the monad.
---
--- @
--- 'hoistFailM'' :: 'MonadFail' m => m ('Maybe'       a) ->           m a
--- 'hoistFailM'' :: 'MonadFail' m => m ('Either'  a   b) ->           m b
--- 'hoistFailM'' :: 'MonadFail' m =>    'ExceptT' a m b  -> 'ExceptT' a m b
--- @
+-- | @hoistFailM' = hoistFailM id@
 hoistFailM'
   :: (PluckError String t m, MonadFail m)
   => m (t a)

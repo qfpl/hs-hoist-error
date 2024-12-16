@@ -36,7 +36,9 @@
 
 module Control.Monad.Error.Hoist
   ( hoistError
+  , hoistError'
   , hoistErrorM
+  , hoistErrorM'
   -- ** Operators
   -- $mnemonics
   , (<%?>)
@@ -70,6 +72,13 @@ hoistError
   -> m a
 hoistError f = foldError (throwError . f) pure
 
+-- | @hoistError' = hoistError id@
+hoistError'
+  :: (PluckError e t m, MonadError e m)
+  => t a
+  -> m a
+hoistError' = hoistError id
+
 -- | A version of 'hoistError' that operates on values already in the monad.
 --
 -- @
@@ -83,6 +92,13 @@ hoistErrorM
   -> m (t a)
   -> m a
 hoistErrorM e m = m >>= hoistError e
+
+-- | @hoistErrorM' = hoistErrorM id@
+hoistErrorM'
+  :: (PluckError e t m, MonadError e m)
+  => m (t a)
+  -> m a
+hoistErrorM' = hoistErrorM id
 
 -- $mnemonics
 --
