@@ -1,3 +1,8 @@
+0.3.1.0
+
+* Add `Control.Monad.Error.Hoist.hoistError'` and
+  `Control.Monad.Error.Hoist.hoistErrorM'`
+
 0.3.0.0
 
 * Replaced the `HoistError` typeclass, which is about monads, with a

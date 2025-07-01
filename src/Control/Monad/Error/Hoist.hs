@@ -73,6 +73,8 @@ hoistError
 hoistError f = foldError (throwError . f) pure
 
 -- | @hoistError' = hoistError id@
+--
+-- @since 0.3.1.0
 hoistError'
   :: (PluckError e t m, MonadError e m)
   => t a
@@ -94,6 +96,8 @@ hoistErrorM
 hoistErrorM e m = m >>= hoistError e
 
 -- | @hoistErrorM' = hoistErrorM id@
+--
+-- @since 0.3.1.0
 hoistErrorM'
   :: (PluckError e t m, MonadError e m)
   => m (t a)
