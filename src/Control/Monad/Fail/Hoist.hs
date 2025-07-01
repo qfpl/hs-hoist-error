@@ -31,9 +31,12 @@ import           Control.Monad.Error.Hoist  (PluckError(..))
 -- computation into @m@.
 --
 -- @
--- 'hoistFail' :: 'MonadFail' m => (() -> String) -> 'Maybe'    a -> m a
--- 'hoistFail' :: 'MonadFail' m => (a  -> String) -> 'Either' a b -> m b
+-- 'hoistFail' :: 'MonadFail' m => (() -> String) -> 'Maybe'       a -> m a
+-- 'hoistFail' :: 'MonadFail' m => (e  -> String) -> 'Either'  e   a -> m a
+-- 'hoistFail' :: 'MonadFail' m => (e  -> String) -> 'ExceptT' e m a -> m a
 -- @
+--
+-- @since 0.3.0.0
 hoistFail
   :: (PluckError e t m, MonadFail m)
   => (e -> String)
@@ -42,16 +45,20 @@ hoistFail
 hoistFail f = foldError (fail . f) pure
 
 -- | @hoistFail' = hoistFail id@
+--
+-- @since 0.3.0.0
 hoistFail' :: (PluckError String t m, MonadFail m) => t a -> m a
 hoistFail' = hoistFail id
 
 -- | A version of 'hoistFail' that operates on values already in the monad.
 --
 -- @
--- 'hoistFailM' :: 'MonadFail' m => (() -> String) -> m ('Maybe'       a) ->           m a
--- 'hoistFailM' :: 'MonadFail' m => (a  -> String) -> m ('Either'  a   b) ->           m b
--- 'hoistFailM' :: 'MonadFail' m => (a  -> String) ->    'ExceptT' a m b  -> 'ExceptT' a m b
+-- 'hoistFailM' :: 'MonadFail' m => (() -> String) -> m ('Maybe'       a) -> m a
+-- 'hoistFailM' :: 'MonadFail' m => (e  -> String) -> m ('Either'  e   a) -> m a
+-- 'hoistFailM' :: 'MonadFail' m => (e  -> String) -> m ('ExceptT' e m a) -> m a
 -- @
+--
+-- @since 0.3.0.0
 hoistFailM
   :: (PluckError e t m, MonadFail m)
   => (e -> String)
@@ -60,6 +67,8 @@ hoistFailM
 hoistFailM f m = m >>= hoistFail f
 
 -- | @hoistFailM' = hoistFailM id@
+--
+-- @since 0.3.0.0
 hoistFailM'
   :: (PluckError String t m, MonadFail m)
   => m (t a)
@@ -69,9 +78,12 @@ hoistFailM' = hoistFailM id
 -- | A flipped synonym for 'hoistFail'. Mnemonic: @#@ looks a bit like @F@.
 --
 -- @
--- ('<%#>') :: 'MonadFail' m => 'Maybe'    a -> (() -> e) -> m a
--- ('<%#>') :: 'MonadFail' m => 'Either' a b -> (a  -> e) -> m b
+-- ('<%#>') :: 'MonadFail' m => 'Maybe'       a -> (() -> String) -> m a
+-- ('<%#>') :: 'MonadFail' m => 'Either'  e m a -> (e  -> String) -> m a
+-- ('<%#>') :: 'MonadFail' m => 'ExceptT' e m a -> (e  -> String) -> m a
 -- @
+--
+-- @since 0.3.0.0
 (<%#>)
   :: (PluckError e t m, MonadFail m)
   => t a
@@ -85,10 +97,12 @@ infixl 8 <%#>
 -- | A flipped synonym for 'hoistFailM'.
 --
 -- @
--- ('<%!#>') :: 'MonadError' e m => m ('Maybe'       a) -> (() -> e) ->           m a
--- ('<%!#>') :: 'MonadError' e m => m ('Either'  a   b) -> (a  -> e) ->           m b
--- ('<%!#>') :: 'MonadError' e m =>    'ExceptT' a m b  -> (a  -> e) -> 'ExceptT' a m b
+-- ('<%!#>') :: 'MonadFail' m => m ('Maybe'       a) -> (() -> String) -> m a
+-- ('<%!#>') :: 'MonadFail' m => m ('Either'  e   a) -> (e  -> String) -> m a
+-- ('<%!#>') :: 'MonadFail' m => m ('ExceptT' e m a) -> (e  -> String) -> m a
 -- @
+--
+-- @since 0.3.0.0
 (<%!#>)
   :: (PluckError e t m, MonadFail m)
   => m (t a)
@@ -103,9 +117,12 @@ infixl 8 <%!#>
 -- with a new one.
 --
 -- @
--- ('<#>') :: 'MonadFail' m => 'Maybe'    a -> String -> m a
--- ('<#>') :: 'MonadFail' m => 'Either' a b -> String -> m b
+-- ('<#>') :: 'MonadFail' m => 'Maybe'       a -> String -> m a
+-- ('<#>') :: 'MonadFail' m => 'Either'  e   a -> String -> m a
+-- ('<#>') :: 'MonadFail' m => 'ExceptT' e m a -> String -> m a
 -- @
+--
+-- @since 0.3.0.0
 (<#>)
   :: (PluckError e t m, MonadFail m)
   => t a
@@ -119,10 +136,12 @@ infixl 8 <#>
 -- | A version of '<#>' that operates on values already in the monad.
 --
 -- @
--- ('<!#>') :: 'MonadFail m => m ('Maybe'       a) -> String ->           m a
--- ('<!#>') :: 'MonadFail m => m ('Either'  a   b) -> String ->           m b
--- ('<!#>') :: 'MonadFail m =>    'ExceptT' a m b  -> String -> 'ExceptT' a m b
+-- ('<!#>') :: 'MonadFail' m => m ('Maybe'       a) -> String -> m a
+-- ('<!#>') :: 'MonadFail' m => m ('Either'  e   a) -> String -> m a
+-- ('<!#>') :: 'MonadFail' m => m ('ExceptT' e m a) -> String -> m a
 -- @
+--
+-- @since 0.3.0.0
 (<!#>)
   :: (PluckError e t m, MonadFail m)
   => m (t a)

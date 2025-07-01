@@ -61,9 +61,9 @@ import           Control.Monad.Except       (Except, ExceptT, runExcept,
 -- computation into @m@.
 --
 -- @
--- 'hoistError' :: 'MonadError' e m -> (() -> e) -> 'Maybe'       a -> m a
--- 'hoistError' :: 'MonadError' e m -> (a  -> e) -> 'Either'  a   b -> m b
--- 'hoistError' :: 'MonadError' e m -> (a  -> e) -> 'ExceptT' a m b -> m b
+-- 'hoistError' :: 'MonadError' err m -> (() -> err) -> 'Maybe'       a -> m a
+-- 'hoistError' :: 'MonadError' err m -> (e  -> err) -> 'Either'  e   a -> m a
+-- 'hoistError' :: 'MonadError' err m -> (e  -> err) -> 'ExceptT' e m a -> m a
 -- @
 hoistError
   :: (PluckError e t m, MonadError e' m)
@@ -84,9 +84,9 @@ hoistError' = hoistError id
 -- | A version of 'hoistError' that operates on values already in the monad.
 --
 -- @
--- 'hoistErrorM' :: 'MonadError' e m => (() -> e) -> m ('Maybe'       a) ->           m a
--- 'hoistErrorM' :: 'MonadError' e m => (a  -> e) -> m ('Either'  a   b) ->           m b
--- 'hoistErrorM' :: 'MonadError' e m => (a  -> e) ->    'ExceptT' a m b  -> 'ExceptT' a m b
+-- 'hoistErrorM' :: 'MonadError' err m => (() -> err) -> m ('Maybe'       a) -> m a
+-- 'hoistErrorM' :: 'MonadError' err m => (e  -> err) -> m ('Either'  e   b) -> m a
+-- 'hoistErrorM' :: 'MonadError' err m => (e  -> err) -> m  'ExceptT' e m b  -> m a
 -- @
 hoistErrorM
   :: (PluckError e t m, MonadError e' m)
@@ -123,9 +123,9 @@ hoistErrorM' = hoistErrorM id
 -- | A flipped synonym for 'hoistError'.
 --
 -- @
--- ('<%?>') :: 'MonadError' e m => 'Maybe'       a -> (() -> e) ->           m a
--- ('<%?>') :: 'MonadError' e m => 'Either'  a   b -> (a  -> e) ->           m b
--- ('<%?>') :: 'MonadError' e m => 'ExceptT' a m b -> (a  -> e) -> 'ExceptT' a m b
+-- ('<%?>') :: 'MonadError' err m => 'Maybe'       a -> (() -> err) -> m a
+-- ('<%?>') :: 'MonadError' err m => 'Either'  e   a -> (e  -> err) -> m a
+-- ('<%?>') :: 'MonadError' err m => 'ExceptT' e m a -> (e  -> err) -> m a
 -- @
 (<%?>)
   :: (PluckError e t m, MonadError e' m)
@@ -140,9 +140,9 @@ infixl 8 <%?>
 -- | A flipped synonym for 'hoistErrorM'.
 --
 -- @
--- ('<%!?>') :: 'MonadError' e m => m ('Maybe'       a) -> (() -> e) ->           m a
--- ('<%!?>') :: 'MonadError' e m => m ('Either'  a   b) -> (a  -> e) ->           m b
--- ('<%!?>') :: 'MonadError' e m =>    'ExceptT' a m b  -> (a  -> e) -> 'ExceptT' a m b
+-- ('<%!?>') :: 'MonadError' err m => m ('Maybe'       a) -> (() -> err) ->           m a
+-- ('<%!?>') :: 'MonadError' err m => m ('Either'  e   a) -> (e  -> err) ->           m a
+-- ('<%!?>') :: 'MonadError' err m =>    'ExceptT' e m a  -> (e  -> err) -> 'ExceptT' e m a
 -- @
 (<%!?>)
   :: (PluckError e t m, MonadError e' m)
@@ -158,9 +158,9 @@ infixl 8 <%!?>
 -- with a new one.
 --
 -- @
--- ('<?>') :: 'MonadError' e m => 'Maybe'       a -> e ->           m a
--- ('<?>') :: 'MonadError' e m => 'Either'  a   b -> e ->           m b
--- ('<?>') :: 'MonadError' e m => 'ExceptT' a m b -> e -> 'ExceptT' a m b
+-- ('<?>') :: 'MonadError' err m => 'Maybe'       a -> err -> m a
+-- ('<?>') :: 'MonadError' err m => 'Either'  e   a -> err -> m a
+-- ('<?>') :: 'MonadError' err m => 'ExceptT' e m a -> err -> m a
 -- @
 (<?>)
   :: (PluckError e t m, MonadError e' m)
@@ -175,9 +175,9 @@ infixl 8 <?>
 -- | A version of '<?>' that operates on values already in the monad.
 --
 -- @
--- ('<!?>') :: 'MonadError' e m => m ('Maybe'       a) -> e ->           m a
--- ('<!?>') :: 'MonadError' e m => m ('Either'  a   b) -> e ->           m b
--- ('<!?>') :: 'MonadError' e m =>    'ExceptT' a m b  -> e -> 'ExceptT' a m b
+-- ('<!?>') :: 'MonadError' err m => m ('Maybe'       a) -> e -> m a
+-- ('<!?>') :: 'MonadError' err m => m ('Either'  e   a) -> e -> m a
+-- ('<!?>') :: 'MonadError' err m => m  'ExceptT' e m a  -> e -> m a
 -- @
 (<!?>)
   :: (PluckError e t m, MonadError e' m)
@@ -192,6 +192,8 @@ infixl 8 <!?>
 {-# INLINE (<!?>) #-}
 
 -- | A class for plucking an error @e@ out of a partiality type @t@.
+--
+-- @since 0.3.0.0
 class PluckError e t m | t -> e where
   pluckError :: t a -> m (Either e a)
   default pluckError :: Applicative m => t a -> m (Either e a)
