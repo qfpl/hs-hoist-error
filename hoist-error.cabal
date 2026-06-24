@@ -25,13 +25,13 @@ tested-with:         GHC == 8.8.4
 
 source-repository head
     type: git
-    location: https://github.com/alephcloud/hs-hoist-error.git
+    location: https://github.com/qfpl/hs-hoist-error.git
 
 library
   exposed-modules:
     Control.Monad.Error.Hoist
     Control.Monad.Fail.Hoist
-  build-depends:       base   >=4.13 && <4.22
+  build-depends:       base   >=4.13 && <4.23
                      , mtl    >=2.2 && <2.4
 
   hs-source-dirs:      src
