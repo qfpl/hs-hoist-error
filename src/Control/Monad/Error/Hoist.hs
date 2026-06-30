@@ -209,10 +209,10 @@ instance (Applicative m, e ~ ()) => PluckError e Maybe m where
   pluckError = pure . maybe (Left ()) Right
   foldError f = maybe (f ())
 
-instance Applicative m => PluckError e (Either e) m where
+instance (Applicative m, e ~ e') => PluckError e (Either e') m where
   pluckError = pure
   foldError = either
 
-instance Monad m => PluckError e (ExceptT e m) m where
+instance (Monad m, e ~ e') => PluckError e (ExceptT e' m) m where
   pluckError = runExceptT
   foldError f g = either f g <=< runExceptT
